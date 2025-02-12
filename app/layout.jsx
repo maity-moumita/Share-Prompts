@@ -8,20 +8,22 @@ export const metadata = {
     description: "Discover & Share AI Prompt"
 }
 
-const HomeLayout = ({children}) => {
+const HomeLayout = ({ children }) => {
     return (
-        <html lang="en">
-            <body>
-                <div className="main">
-                    <div className="gradient"/>
-                </div>
+        <Provider>
+            <html lang="en">
+                <body>
+                    <div className="main">
+                        <div className="gradient" />
+                    </div>
 
-                <main className='app'>
-                    <Nav/>
-                    {children}
-                </main>
-            </body>
-        </html>
+                    <main className='app'>
+                        <Nav />
+                        {children}
+                    </main>
+                </body>
+            </html>
+        </Provider>
     )
 }
 

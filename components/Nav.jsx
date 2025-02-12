@@ -7,8 +7,7 @@ import {signIn,signOut,useSession,getProviders} from "next-auth/react";
 
 
 const Nav = () => {
-
-    const isUserLoggedIn = true;
+    const { data: session, status } = useSession();
 
     const [providers,setProviders] = useState(null);
 
@@ -16,14 +15,13 @@ const Nav = () => {
 
     // This will help us to signIn with google and next-auth
     useEffect(() => {
-        const setProviders = async () => {
-            const response = getProviders();
-
+        const fetchProviders = async () => {
+            const response = await getProviders();
             setProviders(response);
-        }
-
-        setProviders();
-    },[])
+        };
+        fetchProviders();
+    }, []);
+    
 
     return(
         <nav className="flex-between w-full mb-16 pt-3">
@@ -40,7 +38,7 @@ const Nav = () => {
             {/* Desktop Navigation */}
 
             <div className="sm:flex hidden">
-             {isUserLoggedIn? (
+             {session?.user? (
                 <div className="flex gap-3 md:gap-5">
                     <Link href="/create-prompt" className="black_btn">
                     Create Post
@@ -64,8 +62,8 @@ const Nav = () => {
                  (
                     <button 
                     type="button" 
-                    key={providers.name}
-                    onClick={() => signIn(providers.id)}
+                    key={provider.name}
+                    onClick={() => signIn(provider.id)}
                     className="black_btn">
                         SignIn
                     </button>
@@ -77,7 +75,7 @@ const Nav = () => {
 
             {/* Mobile Navigation */}
             <div className="sm:hidden flex relative">
-                {isUserLoggedIn ? (
+                {session?.user ? (
                     <div className="flex">
                         
                     <Image
