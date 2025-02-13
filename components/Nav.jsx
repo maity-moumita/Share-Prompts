@@ -40,14 +40,14 @@ const Nav = () => {
             <div className="sm:flex hidden">
              {session?.user? (
                 <div className="flex gap-3 md:gap-5">
-                    <Link href="/create-prompt" className="black_btn">
+                    <Link href="/create-prompts" className="black_btn">
                     Create Post
                     </Link>
 
                     <button type="button" onClick={signOut} className="outline_btn">SignOut</button>
 
                     <Image
-                    src="/assets/images/logo.svg"
+                    src={session?.user.image}
                     width={37}
                     height={37}
                     className="rounded-full"
@@ -79,7 +79,7 @@ const Nav = () => {
                     <div className="flex">
                         
                     <Image
-                    src="/assets/images/logo.svg"
+                    src={session?.user.image}
                     width={37}
                     height={37}
                     className="rounded-full"
@@ -118,8 +118,8 @@ const Nav = () => {
                  (
                     <button 
                     type="button" 
-                    key={providers.name}
-                    onClick={() => signIn(providers.id)}
+                    key={provider.name}
+                    onClick={() => signIn(provider.id)}
                     className="black_btn">
                         SignIn
                     </button>
