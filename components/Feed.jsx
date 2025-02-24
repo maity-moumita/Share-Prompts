@@ -1,101 +1,96 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-const PromptCard = ({ post, handleEdit, handleDelete, handleTagClick }) => {
-  const { data: session } = useSession();
-  const pathName = usePathname();
-  const router = useRouter();
+import PromptCard from "./PromptCard";
 
-  const [copied, setCopied] = useState("");
-  if (!post) return null;
-
-  const handleProfileClick = () => {
-    console.log(post);
-
-    if (post?.creator?._id === session?.user.id) return router.push("/profile");
-
-
-    router.push(`/profile/${post.creator._id}?name=${post.creator.username}`);
-  };
-
-  const handleCopy = () => {
-    if (!post?.prompt) return;
-setCopied(post.prompt);
-navigator.clipboard.writeText(post.prompt);
-    setTimeout(() => setCopied(false), 3000);
-  };
-
+const PromptCardList = ({ data, handleTagClick }) => {
   return (
-    <div className='prompt_card'>
-      <div className='flex justify-between items-start gap-5'>
-        <div
-          className='flex-1 flex justify-start items-center gap-3 cursor-pointer'
-          onClick={handleProfileClick}
-        >
-          <Image
-            src={post?.creator?.image || "/assets/icons/default-user.svg"}
-            alt="user_image"
-            width={40}
-            height={40}
-            className="rounded-full object-contain"
-          />
-
-          <div className='flex flex-col'>
-            <h3 className='font-satoshi font-semibold text-gray-900'>
-              {post?.creator?.username}
-            </h3>
-            <p className='font-inter text-sm text-gray-500'>
-              {post?.creator?.email}
-            </p>
-          </div>
-        </div>
-
-        <div className='copy_btn' onClick={handleCopy}>
-          <Image
-            src={
-              copied === post?.prompt
-                ? "/assets/icons/tick.svg"
-                : "/assets/icons/copy.svg"
-            }
-            alt={copied === post?.prompt ? "tick_icon" : "copy_icon"}
-            width={12}
-            height={12}
-          />
-        </div>
-      </div>
-
-      <p className="my-4 font-satoshi text-sm text-gray-700">
-        {post?.prompt || "No prompt available"}
-      </p>
-      <p
-        className="font-inter text-sm blue_gradient cursor-pointer"
-        onClick={() => handleTagClick && post?.tag && handleTagClick(post.tag)}
-      >
-        #{post?.tag || "No Tag"}
-      </p>
-
-      {session?.user.id === post.creator._id && pathName === "/profile" && (
-        <div className='mt-5 flex-center gap-4 border-t border-gray-100 pt-3'>
-          <p
-            className='font-inter text-sm green_gradient cursor-pointer'
-            onClick={handleEdit}
-          >
-            Edit
-          </p>
-          <p
-            className='font-inter text-sm orange_gradient cursor-pointer'
-            onClick={handleDelete}
-          >
-            Delete
-          </p>
-        </div>
-      )}
+    <div className='mt-16 prompt_layout'>
+      {data.map((post) => (
+        <PromptCard
+          key={post._id}
+          post={post}
+          handleTagClick={handleTagClick}
+        />
+      ))}
     </div>
   );
 };
 
-export default PromptCard;
+const Feed = () => {
+  const [allPosts, setAllPosts] = useState([]);
+
+  // Search states
+  const [searchText, setSearchText] = useState("");
+  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [searchedResults, setSearchedResults] = useState([]);
+
+  const fetchPosts = async () => {
+    const response = await fetch("/api/prompt");
+    const data = await response.json();
+
+    setAllPosts(data);
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const filterPrompts = (searchtext) => {
+    const regex = new RegExp(searchtext, "i"); // 'i' flag for case-insensitive search
+    return allPosts.filter(
+      (item) =>
+        regex.test(item.creator.username) ||
+        regex.test(item.tag) ||
+        regex.test(item.prompt)
+    );
+  };
+
+  const handleSearchChange = (e) => {
+    clearTimeout(searchTimeout);
+    setSearchText(e.target.value);
+
+    // debounce method
+    setSearchTimeout(
+      setTimeout(() => {
+        const searchResult = filterPrompts(e.target.value);
+        setSearchedResults(searchResult);
+      }, 500)
+    );
+  };
+
+  const handleTagClick = (tagName) => {
+    setSearchText(tagName);
+
+    const searchResult = filterPrompts(tagName);
+    setSearchedResults(searchResult);
+  };
+
+  return (
+    <section className='feed'>
+      <form className='relative w-full flex-center'>
+        <input
+          type='text'
+          placeholder='Search for a tag or a username'
+          value={searchText}
+          onChange={handleSearchChange}
+          required
+          className='search_input peer'
+        />
+      </form>
+
+      {/* All Prompts */}
+      {searchText ? (
+        <PromptCardList
+          data={searchedResults}
+          handleTagClick={handleTagClick}
+        />
+      ) : (
+        <PromptCardList data={allPosts} handleTagClick={handleTagClick} />
+      )}
+    </section>
+  );
+};
+
+export default Feed;
