@@ -14,7 +14,7 @@ import { Schema, model, models } from "mongoose";
     image: {
         type: String
     }
- })
+ },)
 
  const User = models.User || model("User",userSchema);
 
