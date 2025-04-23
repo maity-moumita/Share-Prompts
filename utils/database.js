@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const connectToDB = async () => {
+export const connectToDB = async () => {
     mongoose.set('strictQuery', true);
 
     if (mongoose.connection.readyState === 1) {
@@ -23,4 +23,3 @@ const connectToDB = async () => {
     }
 };
 
-export default connectToDB;
